@@ -1,0 +1,22 @@
+{
+  "name": "openhab-utilities",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/takebene/openhab-utilities.git"
+  },
+  "keywords": [
+    "openhab"
+  ],
+  "author": "blinke",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/takebene/openhab-utilities/issues"
+  },
+  "homepage": "https://github.com/takebene/openhab-utilities#readme",
+  "description": ""
+}
