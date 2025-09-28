@@ -6,62 +6,117 @@ function controlThermostat(
   currentTemperatureItem,
   valveItem
 ) {
-  var mode = modeItem.state;
-  var heatSetPoint = heatSetPointItem.quantityState;
-  var coolSetPoint = coolSetPointItem.quantityState;
-  var currentTemperature = currentTemperatureItem.quantityState;
+  // --- Tunables ---
+  const HEAT_HYST = 0.5; // °C hysteresis for heating (prevents chattering)
+  const COOL_HYST = 0.5; // °C hysteresis for "close if too warm" in AUTO
+  const AUTO_GAP = 1.0; // °C minimum gap between heat and cool in AUTO (logic only)
 
-  console.log("Current valve state: " + valveItem.state);
+  // --- Helper: normalize QuantityType -> number (°C) ---
+  const toC = (q) => {
+    if (q == null) return NaN;
+    try {
+      // openHAB QuantityType path
+      if (typeof q.toUnit === "function") return q.toUnit("°C").floatValue();
+      if (typeof q.floatValue === "function") return q.floatValue();
+    } catch (e) {}
+    // Fallback: parse string/number
+    return parseFloat(String(q));
+  };
 
-  // Mode 0 (OFF) or Mode 2 (COOL): Valve should remain closed.
-  if (mode == 0 || mode == 2) {
-    if (valveItem.state === "ON") {
-      console.log("Mode is OFF or COOL. Closing valve.");
+  // Modes: 0=OFF, 1=HEAT, 2=COOL, 3=AUTO
+  const mode = parseInt(String(modeItem.state), 10);
+  const heatSet = toC(heatSetPointItem.quantityState);
+  const coolSet = toC(coolSetPointItem.quantityState);
+  const temp = toC(currentTemperatureItem.quantityState);
+  const valve = String(valveItem.state); // "ON" | "OFF"
+
+  console.log(
+    `Mode=${mode}  T=${temp}°C  HeatSet=${heatSet}°C  CoolSet=${coolSet}°C  Valve=${valve}`
+  );
+
+  // Guard: if we don't have a valid current temperature, do nothing.
+  if (Number.isNaN(temp)) {
+    console.warn("No valid current temperature — doing nothing.");
+    return;
+  }
+
+  // OFF or COOL => heating valve must be closed
+  if (mode === 0 || mode === 2) {
+    if (valve !== "OFF") {
+      console.log("Mode OFF/COOL -> close valve");
       valveItem.sendCommand("OFF");
     }
     return;
   }
 
-  // Mode 1 (HEAT): Open valve only if temperature is below heatSetPoint.
-  if (mode == 1) {
-    if (currentTemperature < heatSetPoint) {
-      if (valveItem.state !== "ON") {
-        console.log(
-          "Mode is HEAT and temperature is below setpoint. Opening valve."
-        );
+  // HEAT: maintain around the heating setpoint with hysteresis
+  if (mode === 1) {
+    if (!Number.isNaN(heatSet)) {
+      const onThreshold = heatSet - HEAT_HYST / 2; // open when clearly below
+      const offThreshold = heatSet + HEAT_HYST / 2; // close when clearly above
+
+      if (temp <= onThreshold && valve !== "ON") {
+        console.log(`HEAT: T<=${onThreshold} -> open valve`);
         valveItem.sendCommand("ON");
+      } else if (temp >= offThreshold && valve !== "OFF") {
+        console.log(`HEAT: T>=${offThreshold} -> close valve`);
+        valveItem.sendCommand("OFF");
+      } else {
+        console.log("HEAT: within hysteresis band -> keep current state");
       }
     } else {
-      if (valveItem.state !== "OFF") {
-        console.log(
-          "Mode is HEAT and temperature is at or above setpoint. Closing valve."
-        );
-        valveItem.sendCommand("OFF");
-      }
+      console.warn("HEAT: missing heat setpoint — doing nothing.");
     }
     return;
   }
 
-  // Mode 3 (AUTO):
-  if (mode == 3) {
-    // Wenn die Temperatur den coolSetPoint erreicht oder überschreitet, Ventil schließen.
-    if (currentTemperature >= coolSetPoint) {
-      if (valveItem.state !== "OFF") {
-        console.log("Temperature has reached coolSetPoint. Closing valve.");
+  // AUTO: heating valve participates only in heating.
+  // If near/above cool setpoint, keep it closed; otherwise follow HEAT logic.
+  if (mode === 3) {
+    // Enforce a minimum logical gap so Heat and Cool don't conflict
+    let coolForLogic = coolSet;
+    if (
+      !Number.isNaN(heatSet) &&
+      !Number.isNaN(coolSet) &&
+      coolSet < heatSet + AUTO_GAP
+    ) {
+      coolForLogic = heatSet + AUTO_GAP;
+    }
+
+    // 1) Too warm (near/above cooling target) -> valve must be closed
+    if (!Number.isNaN(coolForLogic) && temp >= coolForLogic - COOL_HYST / 2) {
+      if (valve !== "OFF") {
+        console.log(
+          `AUTO: T>=CoolSet(${coolForLogic})-${COOL_HYST / 2} -> close valve`
+        );
         valveItem.sendCommand("OFF");
+      } else {
+        console.log("AUTO: warm enough -> valve stays closed");
       }
-    } else if (currentTemperature <= heatSetPoint) {
-      // Wenn die Temperatur den heatSetPoint erreicht oder unterschreitet, Ventil öffnen.
-      if (valveItem.state !== "ON") {
-        console.log("Temperature has reached heatSetPoint. Opening valve.");
+      return;
+    }
+
+    // 2) Otherwise, apply HEAT logic around heat setpoint
+    if (!Number.isNaN(heatSet)) {
+      const onThreshold = heatSet - HEAT_HYST / 2;
+      const offThreshold = heatSet + HEAT_HYST / 2;
+
+      if (temp <= onThreshold && valve !== "ON") {
+        console.log(`AUTO/HEAT: T<=${onThreshold} -> open valve`);
         valveItem.sendCommand("ON");
+      } else if (temp >= offThreshold && valve !== "OFF") {
+        console.log(`AUTO/HEAT: T>=${offThreshold} -> close valve`);
+        valveItem.sendCommand("OFF");
+      } else {
+        console.log("AUTO/HEAT: within hysteresis band -> keep current state");
       }
+    } else {
+      console.warn("AUTO: missing heat setpoint — doing nothing.");
     }
     return;
   }
 
   console.error("Unexpected mode: " + mode);
 }
-module.exports = {
-  controlThermostat,
-};
+
+module.exports = { controlThermostat };

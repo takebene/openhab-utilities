@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "repository": {
     "type": "git",
@@ -18,5 +20,22 @@
     "url": "https://github.com/takebene/openhab-utilities/issues"
   },
   "homepage": "https://github.com/takebene/openhab-utilities#readme",
-  "description": "JavaScript Library for custom openHAB Automation"
+  "description": "JavaScript Library for custom openHAB Automation",
+  "jest": {
+    "testEnvironment": "node",
+    "collectCoverageFrom": [
+      "**/*.js",
+      "!node_modules/**",
+      "!coverage/**",
+      "!jest.config.js"
+    ],
+    "coverageReporters": [
+      "text",
+      "lcov",
+      "html"
+    ]
+  },
+  "devDependencies": {
+    "jest": "^30.1.3"
+  }
 }
