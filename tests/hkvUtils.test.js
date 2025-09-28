@@ -1,7 +1,10 @@
-const { controlThermostat } = require('../hkvUtils');
-const { createThermostatMockSet, createQuantityType } = require('./helpers/mockItems');
+const { controlThermostat } = require("../hkvUtils");
+const {
+  createThermostatMockSet,
+  createQuantityType,
+} = require("./helpers/mockItems");
 
-// Mock console.log und console.warn für saubere Testausgabe
+// Mock console.log and console.warn for clean test output
 const originalConsole = console;
 beforeAll(() => {
   console.log = jest.fn();
@@ -15,12 +18,12 @@ afterAll(() => {
   console.error = originalConsole.error;
 });
 
-describe('controlThermostat', () => {
-  describe('Mode 0 (OFF)', () => {
-    test('should close valve when mode is OFF and valve is open', () => {
+describe("controlThermostat", () => {
+  describe("Mode 0 (OFF)", () => {
+    test("should close valve when mode is OFF and valve is open", () => {
       const items = createThermostatMockSet({
         mode: 0,
-        valveState: 'ON'
+        valveState: "ON",
       });
 
       controlThermostat(
@@ -32,13 +35,13 @@ describe('controlThermostat', () => {
         items.valveItem
       );
 
-      expect(items.valveItem.sendCommand).toHaveBeenCalledWith('OFF');
+      expect(items.valveItem.sendCommand).toHaveBeenCalledWith("OFF");
     });
 
-    test('should keep valve closed when mode is OFF and valve is already closed', () => {
+    test("should keep valve closed when mode is OFF and valve is already closed", () => {
       const items = createThermostatMockSet({
         mode: 0,
-        valveState: 'OFF'
+        valveState: "OFF",
       });
 
       controlThermostat(
@@ -54,13 +57,13 @@ describe('controlThermostat', () => {
     });
   });
 
-  describe('Mode 1 (HEAT)', () => {
-    test('should open valve when temperature is below threshold', () => {
+  describe("Mode 1 (HEAT)", () => {
+    test("should open valve when temperature is below threshold", () => {
       const items = createThermostatMockSet({
         mode: 1,
         heatSetPoint: 21.0,
-        currentTemp: 20.0, // Unter der Hysterese-Schwelle (21 - 0.25 = 20.75)
-        valveState: 'OFF'
+        currentTemp: 20.0, // Below hysteresis threshold (21 - 0.25 = 20.75)
+        valveState: "OFF",
       });
 
       controlThermostat(
@@ -72,15 +75,15 @@ describe('controlThermostat', () => {
         items.valveItem
       );
 
-      expect(items.valveItem.sendCommand).toHaveBeenCalledWith('ON');
+      expect(items.valveItem.sendCommand).toHaveBeenCalledWith("ON");
     });
 
-    test('should close valve when temperature is above threshold', () => {
+    test("should close valve when temperature is above threshold", () => {
       const items = createThermostatMockSet({
         mode: 1,
         heatSetPoint: 21.0,
-        currentTemp: 22.0, // Über der Hysterese-Schwelle (21 + 0.25 = 21.25)
-        valveState: 'ON'
+        currentTemp: 22.0, // Above hysteresis threshold (21 + 0.25 = 21.25)
+        valveState: "ON",
       });
 
       controlThermostat(
@@ -92,15 +95,15 @@ describe('controlThermostat', () => {
         items.valveItem
       );
 
-      expect(items.valveItem.sendCommand).toHaveBeenCalledWith('OFF');
+      expect(items.valveItem.sendCommand).toHaveBeenCalledWith("OFF");
     });
 
-    test('should not change valve state within hysteresis band', () => {
+    test("should not change valve state within hysteresis band", () => {
       const items = createThermostatMockSet({
         mode: 1,
         heatSetPoint: 21.0,
-        currentTemp: 21.0, // Exakt am Setpoint, innerhalb der Hysterese
-        valveState: 'ON'
+        currentTemp: 21.0, // Exactly at setpoint, within hysteresis
+        valveState: "ON",
       });
 
       controlThermostat(
@@ -115,14 +118,14 @@ describe('controlThermostat', () => {
       expect(items.valveItem.sendCommand).not.toHaveBeenCalled();
     });
 
-    test('should handle missing heat setpoint gracefully', () => {
+    test("should handle missing heat setpoint gracefully", () => {
       const items = createThermostatMockSet({
         mode: 1,
         currentTemp: 20.0,
-        valveState: 'OFF'
+        valveState: "OFF",
       });
-      
-      // Setze heatSetPoint auf NaN
+
+      // Set heatSetPoint to NaN
       items.heatSetPointItem.quantityState = createQuantityType(NaN);
 
       controlThermostat(
@@ -135,15 +138,17 @@ describe('controlThermostat', () => {
       );
 
       expect(items.valveItem.sendCommand).not.toHaveBeenCalled();
-      expect(console.warn).toHaveBeenCalledWith('HEAT: missing heat setpoint — doing nothing.');
+      expect(console.warn).toHaveBeenCalledWith(
+        "HEAT: missing heat setpoint — doing nothing."
+      );
     });
   });
 
-  describe('Mode 2 (COOL)', () => {
-    test('should close valve when mode is COOL and valve is open', () => {
+  describe("Mode 2 (COOL)", () => {
+    test("should close valve when mode is COOL and valve is open", () => {
       const items = createThermostatMockSet({
         mode: 2,
-        valveState: 'ON'
+        valveState: "ON",
       });
 
       controlThermostat(
@@ -155,13 +160,13 @@ describe('controlThermostat', () => {
         items.valveItem
       );
 
-      expect(items.valveItem.sendCommand).toHaveBeenCalledWith('OFF');
+      expect(items.valveItem.sendCommand).toHaveBeenCalledWith("OFF");
     });
 
-    test('should keep valve closed when mode is COOL and valve is already closed', () => {
+    test("should keep valve closed when mode is COOL and valve is already closed", () => {
       const items = createThermostatMockSet({
         mode: 2,
-        valveState: 'OFF'
+        valveState: "OFF",
       });
 
       controlThermostat(
@@ -177,14 +182,14 @@ describe('controlThermostat', () => {
     });
   });
 
-  describe('Mode 3 (AUTO)', () => {
-    test('should close valve when temperature is above cool setpoint', () => {
+  describe("Mode 3 (AUTO)", () => {
+    test("should close valve when temperature is above cool setpoint", () => {
       const items = createThermostatMockSet({
         mode: 3,
         heatSetPoint: 20.0,
         coolSetPoint: 24.0,
-        currentTemp: 24.5, // Über dem Kühl-Threshold
-        valveState: 'ON'
+        currentTemp: 24.5, // Above cool threshold
+        valveState: "ON",
       });
 
       controlThermostat(
@@ -196,16 +201,16 @@ describe('controlThermostat', () => {
         items.valveItem
       );
 
-      expect(items.valveItem.sendCommand).toHaveBeenCalledWith('OFF');
+      expect(items.valveItem.sendCommand).toHaveBeenCalledWith("OFF");
     });
 
-    test('should open valve when temperature is below heat setpoint in AUTO mode', () => {
+    test("should open valve when temperature is below heat setpoint in AUTO mode", () => {
       const items = createThermostatMockSet({
         mode: 3,
         heatSetPoint: 20.0,
         coolSetPoint: 24.0,
-        currentTemp: 19.0, // Unter dem Heat-Threshold
-        valveState: 'OFF'
+        currentTemp: 19.0, // Below heat threshold
+        valveState: "OFF",
       });
 
       controlThermostat(
@@ -217,16 +222,16 @@ describe('controlThermostat', () => {
         items.valveItem
       );
 
-      expect(items.valveItem.sendCommand).toHaveBeenCalledWith('ON');
+      expect(items.valveItem.sendCommand).toHaveBeenCalledWith("ON");
     });
 
-    test('should handle overlapping setpoints by enforcing minimum gap', () => {
+    test("should handle overlapping setpoints by enforcing minimum gap", () => {
       const items = createThermostatMockSet({
         mode: 3,
         heatSetPoint: 22.0,
-        coolSetPoint: 21.0, // Niedriger als heatSetPoint - wird angepasst
-        currentTemp: 23.5, // Über dem angepassten coolSetPoint (22 + 1.0 = 23)
-        valveState: 'ON'
+        coolSetPoint: 21.0, // Lower than heatSetPoint - will be adjusted
+        currentTemp: 23.5, // Above adjusted coolSetPoint (22 + 1.0 = 23)
+        valveState: "ON",
       });
 
       controlThermostat(
@@ -238,17 +243,17 @@ describe('controlThermostat', () => {
         items.valveItem
       );
 
-      // Sollte das Ventil schließen, da Temperatur über angepasstem coolSetPoint liegt
-      expect(items.valveItem.sendCommand).toHaveBeenCalledWith('OFF');
+      // Should close valve since temperature is above adjusted coolSetPoint
+      expect(items.valveItem.sendCommand).toHaveBeenCalledWith("OFF");
     });
 
-    test('should not change valve state in comfort zone between setpoints', () => {
+    test("should not change valve state in comfort zone between setpoints", () => {
       const items = createThermostatMockSet({
         mode: 3,
         heatSetPoint: 20.0,
         coolSetPoint: 24.0,
-        currentTemp: 22.0, // Zwischen den Setpoints
-        valveState: 'OFF'
+        currentTemp: 22.0, // Between setpoints
+        valveState: "OFF",
       });
 
       controlThermostat(
@@ -263,14 +268,14 @@ describe('controlThermostat', () => {
       expect(items.valveItem.sendCommand).not.toHaveBeenCalled();
     });
 
-    test('should handle missing setpoints gracefully', () => {
+    test("should handle missing setpoints gracefully", () => {
       const items = createThermostatMockSet({
         mode: 3,
         currentTemp: 20.0,
-        valveState: 'OFF'
+        valveState: "OFF",
       });
-      
-      // Setze beide Setpoints auf NaN
+
+      // Set both setpoints to NaN
       items.heatSetPointItem.quantityState = createQuantityType(NaN);
       items.coolSetPointItem.quantityState = createQuantityType(NaN);
 
@@ -284,14 +289,16 @@ describe('controlThermostat', () => {
       );
 
       expect(items.valveItem.sendCommand).not.toHaveBeenCalled();
-      expect(console.warn).toHaveBeenCalledWith('AUTO: missing heat setpoint — doing nothing.');
+      expect(console.warn).toHaveBeenCalledWith(
+        "AUTO: missing heat setpoint — doing nothing."
+      );
     });
   });
 
-  describe('Edge Cases', () => {
-    test('should handle invalid mode gracefully', () => {
+  describe("Edge Cases", () => {
+    test("should handle invalid mode gracefully", () => {
       const items = createThermostatMockSet({
-        mode: 99 // Ungültiger Modus
+        mode: 99, // Invalid mode
       });
 
       controlThermostat(
@@ -303,16 +310,16 @@ describe('controlThermostat', () => {
         items.valveItem
       );
 
-      expect(console.error).toHaveBeenCalledWith('Unexpected mode: 99');
+      expect(console.error).toHaveBeenCalledWith("Unexpected mode: 99");
       expect(items.valveItem.sendCommand).not.toHaveBeenCalled();
     });
 
-    test('should handle invalid current temperature gracefully', () => {
+    test("should handle invalid current temperature gracefully", () => {
       const items = createThermostatMockSet({
-        mode: 1
+        mode: 1,
       });
-      
-      // Setze currentTemp auf null/undefined
+
+      // Set currentTemp to null/undefined
       items.currentTemperatureItem.quantityState = null;
 
       controlThermostat(
@@ -324,22 +331,24 @@ describe('controlThermostat', () => {
         items.valveItem
       );
 
-      expect(console.warn).toHaveBeenCalledWith('No valid current temperature — doing nothing.');
+      expect(console.warn).toHaveBeenCalledWith(
+        "No valid current temperature — doing nothing."
+      );
       expect(items.valveItem.sendCommand).not.toHaveBeenCalled();
     });
 
-    test('should handle string temperature values', () => {
+    test("should handle string temperature values", () => {
       const items = createThermostatMockSet({
         mode: 1,
         heatSetPoint: 21.0,
-        valveState: 'OFF'
+        valveState: "OFF",
       });
 
-      // Simuliere String-Werte wie sie von OpenHAB kommen können
+      // Simulate string values as they can come from OpenHAB
       items.currentTemperatureItem.quantityState = {
-        toString: () => '19.5 °C',
+        toString: () => "19.5 °C",
         toUnit: () => ({ floatValue: () => 19.5 }),
-        floatValue: () => 19.5
+        floatValue: () => 19.5,
       };
 
       controlThermostat(
@@ -351,17 +360,17 @@ describe('controlThermostat', () => {
         items.valveItem
       );
 
-      expect(items.valveItem.sendCommand).toHaveBeenCalledWith('ON');
+      expect(items.valveItem.sendCommand).toHaveBeenCalledWith("ON");
     });
   });
 
-  describe('Hysteresis Behavior', () => {
-    test('should respect hysteresis to prevent valve chattering', () => {
+  describe("Hysteresis Behavior", () => {
+    test("should respect hysteresis to prevent valve chattering", () => {
       const items = createThermostatMockSet({
         mode: 1,
         heatSetPoint: 21.0,
-        currentTemp: 21.1, // Knapp über Setpoint, aber noch in Hysterese
-        valveState: 'ON'
+        currentTemp: 21.1, // Just above setpoint, but still in hysteresis
+        valveState: "ON",
       });
 
       controlThermostat(
@@ -373,16 +382,16 @@ describe('controlThermostat', () => {
         items.valveItem
       );
 
-      // Ventil sollte nicht geschaltet werden (innerhalb Hysterese-Band)
+      // Valve should not be switched (within hysteresis band)
       expect(items.valveItem.sendCommand).not.toHaveBeenCalled();
     });
 
-    test('should switch valve when clearly outside hysteresis band', () => {
+    test("should switch valve when clearly outside hysteresis band", () => {
       const items = createThermostatMockSet({
         mode: 1,
         heatSetPoint: 21.0,
-        currentTemp: 21.5, // Klar über Hysterese-Schwelle (21 + 0.25 = 21.25)
-        valveState: 'ON'
+        currentTemp: 21.5, // Clearly above hysteresis threshold (21 + 0.25 = 21.25)
+        valveState: "ON",
       });
 
       controlThermostat(
@@ -394,7 +403,7 @@ describe('controlThermostat', () => {
         items.valveItem
       );
 
-      expect(items.valveItem.sendCommand).toHaveBeenCalledWith('OFF');
+      expect(items.valveItem.sendCommand).toHaveBeenCalledWith("OFF");
     });
   });
 });

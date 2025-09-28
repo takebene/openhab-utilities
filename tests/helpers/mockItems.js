@@ -1,32 +1,32 @@
 /**
- * Mock-Helpers für OpenHAB Items in Tests
+ * Mock helpers for OpenHAB Items in tests
  */
 
 /**
- * Erstellt ein Mock QuantityType-Objekt für Temperaturen
+ * Creates a mock QuantityType object for temperatures
  */
-function createQuantityType(value, unit = '°C') {
+function createQuantityType(value, unit = "°C") {
   return {
     floatValue: () => parseFloat(value),
     toUnit: (targetUnit) => ({
-      floatValue: () => parseFloat(value)
+      floatValue: () => parseFloat(value),
     }),
-    toString: () => `${value} ${unit}`
+    toString: () => `${value} ${unit}`,
   };
 }
 
 /**
- * Erstellt ein Mock OpenHAB Item
+ * Creates a mock OpenHAB Item
  */
 function createMockItem(initialState, initialQuantityState = null) {
   const mockItem = {
     state: initialState,
     quantityState: initialQuantityState,
-    commands: [], // Protokolliert alle sendCommand-Aufrufe
-    sendCommand: jest.fn()
+    commands: [], // Logs all sendCommand calls
+    sendCommand: jest.fn(),
   };
 
-  // sendCommand Mock protokolliert Commands und ändert den State
+  // sendCommand mock logs commands and changes state
   mockItem.sendCommand.mockImplementation((command) => {
     mockItem.commands.push(command);
     mockItem.state = command;
@@ -36,7 +36,7 @@ function createMockItem(initialState, initialQuantityState = null) {
 }
 
 /**
- * Erstellt ein Mock Thermostat Item Set
+ * Creates a mock thermostat item set
  */
 function createThermostatMockSet(config = {}) {
   const defaults = {
@@ -44,7 +44,7 @@ function createThermostatMockSet(config = {}) {
     heatSetPoint: 21.0,
     coolSetPoint: 24.0,
     currentTemp: 20.0,
-    valveState: 'OFF'
+    valveState: "OFF",
   };
 
   const settings = { ...defaults, ...config };
@@ -63,12 +63,12 @@ function createThermostatMockSet(config = {}) {
       settings.currentTemp.toString(),
       createQuantityType(settings.currentTemp)
     ),
-    valveItem: createMockItem(settings.valveState)
+    valveItem: createMockItem(settings.valveState),
   };
 }
 
 module.exports = {
   createQuantityType,
   createMockItem,
-  createThermostatMockSet
+  createThermostatMockSet,
 };
