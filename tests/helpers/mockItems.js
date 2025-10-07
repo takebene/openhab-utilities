@@ -1,6 +1,11 @@
 /**
- * Mock helpers for OpenHAB Items in tests
- */
+ * Mock helpers for OpenHAB Items in   const defaults = {
+    mode: 4, // HEAT
+    heatSetPoint: 21.0,
+    coolSetPoint: 24.0,
+    currentTemp: 20.0,
+    valveState: 'OFF'
+  };*/
 
 /**
  * Creates a mock QuantityType object for temperatures

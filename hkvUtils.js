@@ -23,7 +23,7 @@ function controlThermostat(
     return parseFloat(String(q));
   };
 
-  // Modes: 0=OFF, 1=HEAT, 2=COOL, 3=AUTO
+  // Modes: 0=OFF, 1=AUTO, 3=COOL, 4=HEAT
   const mode = parseInt(String(modeItem.state), 10);
   const heatSet = toC(heatSetPointItem.quantityState);
   const coolSet = toC(coolSetPointItem.quantityState);
@@ -41,7 +41,7 @@ function controlThermostat(
   }
 
   // OFF or COOL => heating valve must be closed
-  if (mode === 0 || mode === 2) {
+  if (mode === 0 || mode === 3) {
     if (valve !== "OFF") {
       console.log("Mode OFF/COOL -> close valve");
       valveItem.sendCommand("OFF");
@@ -50,7 +50,7 @@ function controlThermostat(
   }
 
   // HEAT: maintain around the heating setpoint with hysteresis
-  if (mode === 1) {
+  if (mode === 4) {
     if (!Number.isNaN(heatSet)) {
       const onThreshold = heatSet - HEAT_HYST / 2; // open when clearly below
       const offThreshold = heatSet + HEAT_HYST / 2; // close when clearly above
@@ -72,7 +72,7 @@ function controlThermostat(
 
   // AUTO: heating valve participates only in heating.
   // If near/above cool setpoint, keep it closed; otherwise follow HEAT logic.
-  if (mode === 3) {
+  if (mode === 1) {
     // Enforce a minimum logical gap so Heat and Cool don't conflict
     let coolForLogic = coolSet;
     if (

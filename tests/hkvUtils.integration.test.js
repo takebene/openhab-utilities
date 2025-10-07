@@ -13,7 +13,7 @@ describe("controlThermostat - Integration Tests", () => {
   describe("Realistic Usage Scenarios", () => {
     test("Winter morning scenario: Heat mode, cold room, valve should open", () => {
       const items = createThermostatMockSet({
-        mode: 1, // HEAT
+        mode: 4, // HEAT
         heatSetPoint: 21.0,
         coolSetPoint: 24.0,
         currentTemp: 18.5, // Cold morning
@@ -35,7 +35,7 @@ describe("controlThermostat - Integration Tests", () => {
 
     test("Summer scenario: Cool mode, any temperature, valve should be closed", () => {
       const items = createThermostatMockSet({
-        mode: 2, // COOL
+        mode: 3, // COOL
         heatSetPoint: 21.0,
         coolSetPoint: 24.0,
         currentTemp: 26.0, // Warm summer
@@ -57,7 +57,7 @@ describe("controlThermostat - Integration Tests", () => {
 
     test("Auto mode spring/autumn: comfortable temperature, no action needed", () => {
       const items = createThermostatMockSet({
-        mode: 3, // AUTO
+        mode: 1, // AUTO
         heatSetPoint: 20.0,
         coolSetPoint: 24.0,
         currentTemp: 22.0, // Comfortable temperature
@@ -79,7 +79,7 @@ describe("controlThermostat - Integration Tests", () => {
 
     test("Auto mode: too cold, should start heating", () => {
       const items = createThermostatMockSet({
-        mode: 3, // AUTO
+        mode: 1, // AUTO
         heatSetPoint: 20.0,
         coolSetPoint: 24.0,
         currentTemp: 19.0, // Too cold
@@ -101,7 +101,7 @@ describe("controlThermostat - Integration Tests", () => {
 
     test("Auto mode: too warm, should stop heating", () => {
       const items = createThermostatMockSet({
-        mode: 3, // AUTO
+        mode: 1, // AUTO
         heatSetPoint: 20.0,
         coolSetPoint: 24.0,
         currentTemp: 24.5, // Too warm
@@ -125,7 +125,7 @@ describe("controlThermostat - Integration Tests", () => {
   describe("Multiple Control Cycles", () => {
     test("should simulate heating cycle from cold to warm", () => {
       const items = createThermostatMockSet({
-        mode: 1, // HEAT
+        mode: 4, // HEAT
         heatSetPoint: 21.0,
         currentTemp: 18.0,
         valveState: "OFF",
@@ -185,7 +185,7 @@ describe("controlThermostat - Integration Tests", () => {
 
     test("should handle mode changes correctly", () => {
       const items = createThermostatMockSet({
-        mode: 1, // HEAT
+        mode: 4, // HEAT
         heatSetPoint: 21.0,
         currentTemp: 19.0,
         valveState: "OFF",
@@ -225,7 +225,7 @@ describe("controlThermostat - Integration Tests", () => {
   describe("Error Recovery Scenarios", () => {
     test("should handle system restart with unknown valve state", () => {
       const items = createThermostatMockSet({
-        mode: 1, // HEAT
+        mode: 4, // HEAT
         heatSetPoint: 21.0,
         currentTemp: 19.0, // Zu kalt
         valveState: "UNKNOWN", // Unbekannter Zustand nach Neustart
@@ -246,7 +246,7 @@ describe("controlThermostat - Integration Tests", () => {
 
     test("should continue working after temporary sensor failure", () => {
       const items = createThermostatMockSet({
-        mode: 1,
+        mode: 4,
         heatSetPoint: 21.0,
         valveState: "OFF",
       });

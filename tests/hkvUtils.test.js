@@ -57,10 +57,10 @@ describe("controlThermostat", () => {
     });
   });
 
-  describe("Mode 1 (HEAT)", () => {
+  describe("Mode 4 (HEAT)", () => {
     test("should open valve when temperature is below threshold", () => {
       const items = createThermostatMockSet({
-        mode: 1,
+        mode: 4,
         heatSetPoint: 21.0,
         currentTemp: 20.0, // Below hysteresis threshold (21 - 0.25 = 20.75)
         valveState: "OFF",
@@ -80,7 +80,7 @@ describe("controlThermostat", () => {
 
     test("should close valve when temperature is above threshold", () => {
       const items = createThermostatMockSet({
-        mode: 1,
+        mode: 4,
         heatSetPoint: 21.0,
         currentTemp: 22.0, // Above hysteresis threshold (21 + 0.25 = 21.25)
         valveState: "ON",
@@ -100,7 +100,7 @@ describe("controlThermostat", () => {
 
     test("should not change valve state within hysteresis band", () => {
       const items = createThermostatMockSet({
-        mode: 1,
+        mode: 4,
         heatSetPoint: 21.0,
         currentTemp: 21.0, // Exactly at setpoint, within hysteresis
         valveState: "ON",
@@ -120,7 +120,7 @@ describe("controlThermostat", () => {
 
     test("should handle missing heat setpoint gracefully", () => {
       const items = createThermostatMockSet({
-        mode: 1,
+        mode: 4,
         currentTemp: 20.0,
         valveState: "OFF",
       });
@@ -144,10 +144,10 @@ describe("controlThermostat", () => {
     });
   });
 
-  describe("Mode 2 (COOL)", () => {
+  describe("Mode 3 (COOL)", () => {
     test("should close valve when mode is COOL and valve is open", () => {
       const items = createThermostatMockSet({
-        mode: 2,
+        mode: 3,
         valveState: "ON",
       });
 
@@ -165,7 +165,7 @@ describe("controlThermostat", () => {
 
     test("should keep valve closed when mode is COOL and valve is already closed", () => {
       const items = createThermostatMockSet({
-        mode: 2,
+        mode: 3,
         valveState: "OFF",
       });
 
@@ -182,10 +182,10 @@ describe("controlThermostat", () => {
     });
   });
 
-  describe("Mode 3 (AUTO)", () => {
+  describe("Mode 1 (AUTO)", () => {
     test("should close valve when temperature is above cool setpoint", () => {
       const items = createThermostatMockSet({
-        mode: 3,
+        mode: 1,
         heatSetPoint: 20.0,
         coolSetPoint: 24.0,
         currentTemp: 24.5, // Above cool threshold
@@ -206,7 +206,7 @@ describe("controlThermostat", () => {
 
     test("should open valve when temperature is below heat setpoint in AUTO mode", () => {
       const items = createThermostatMockSet({
-        mode: 3,
+        mode: 1,
         heatSetPoint: 20.0,
         coolSetPoint: 24.0,
         currentTemp: 19.0, // Below heat threshold
@@ -227,7 +227,7 @@ describe("controlThermostat", () => {
 
     test("should handle overlapping setpoints by enforcing minimum gap", () => {
       const items = createThermostatMockSet({
-        mode: 3,
+        mode: 1,
         heatSetPoint: 22.0,
         coolSetPoint: 21.0, // Lower than heatSetPoint - will be adjusted
         currentTemp: 23.5, // Above adjusted coolSetPoint (22 + 1.0 = 23)
@@ -249,7 +249,7 @@ describe("controlThermostat", () => {
 
     test("should not change valve state in comfort zone between setpoints", () => {
       const items = createThermostatMockSet({
-        mode: 3,
+        mode: 1,
         heatSetPoint: 20.0,
         coolSetPoint: 24.0,
         currentTemp: 22.0, // Between setpoints
@@ -270,7 +270,7 @@ describe("controlThermostat", () => {
 
     test("should handle missing setpoints gracefully", () => {
       const items = createThermostatMockSet({
-        mode: 3,
+        mode: 1,
         currentTemp: 20.0,
         valveState: "OFF",
       });
@@ -316,7 +316,7 @@ describe("controlThermostat", () => {
 
     test("should handle invalid current temperature gracefully", () => {
       const items = createThermostatMockSet({
-        mode: 1,
+        mode: 4,
       });
 
       // Set currentTemp to null/undefined
@@ -339,7 +339,7 @@ describe("controlThermostat", () => {
 
     test("should handle string temperature values", () => {
       const items = createThermostatMockSet({
-        mode: 1,
+        mode: 4,
         heatSetPoint: 21.0,
         valveState: "OFF",
       });
@@ -367,7 +367,7 @@ describe("controlThermostat", () => {
   describe("Hysteresis Behavior", () => {
     test("should respect hysteresis to prevent valve chattering", () => {
       const items = createThermostatMockSet({
-        mode: 1,
+        mode: 4,
         heatSetPoint: 21.0,
         currentTemp: 21.1, // Just above setpoint, but still in hysteresis
         valveState: "ON",
@@ -388,7 +388,7 @@ describe("controlThermostat", () => {
 
     test("should switch valve when clearly outside hysteresis band", () => {
       const items = createThermostatMockSet({
-        mode: 1,
+        mode: 4,
         heatSetPoint: 21.0,
         currentTemp: 21.5, // Clearly above hysteresis threshold (21 + 0.25 = 21.25)
         valveState: "ON",
