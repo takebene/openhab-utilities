@@ -99,16 +99,12 @@ function controlThermostat(
     // 2) Otherwise, apply HEAT logic around heat setpoint
     if (!Number.isNaN(heatSet)) {
       const onThreshold = heatSet - HEAT_HYST / 2;
-      const offThreshold = heatSet + HEAT_HYST / 2;
 
       if (temp <= onThreshold && valve !== "ON") {
         console.log(`AUTO/HEAT: T<=${onThreshold} -> open valve`);
         valveItem.sendCommand("ON");
-      } else if (temp >= offThreshold && valve !== "OFF") {
-        console.log(`AUTO/HEAT: T>=${offThreshold} -> close valve`);
-        valveItem.sendCommand("OFF");
       } else {
-        console.log("AUTO/HEAT: within hysteresis band -> keep current state");
+        console.log("AUTO/HEAT: in comfort zone -> keep current state");
       }
     } else {
       console.warn("AUTO: missing heat setpoint — doing nothing.");
